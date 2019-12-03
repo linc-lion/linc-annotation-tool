@@ -76,6 +76,6 @@ def transfer_files(image_dir, the_date, new_dir_name ):
                     except shutil.SameFileError as e:
                         print(e)
             else:
-                print("bad file format or in cleaned dir.. skipping:", name)
+                print("bad file format.. skipping:", name)
             
 

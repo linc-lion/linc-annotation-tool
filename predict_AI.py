@@ -39,13 +39,13 @@ class LINC_detector():
         with torch.no_grad():
             
             for image_path, image_name in zip(image_paths, image_names):
+                
                 print('Loading image... ', end='', flush=True)
-                print(f"Device {self.device}")
+                #print(f"Device {self.device}")
+                #print(f"Sent Image Path{image_path}")
                 pil_image = Image.open(image_path)
                 img_mode = pil_image.mode
                 img_size = pil_image.size
-                #print("MODE:",img_mode)
-                #print("SIZE:",img_size )
                 image = to_tensor(pil_image).to(self.device)
                 print('Running image through model... ', end='', flush=True)
                 tic = time.time()
@@ -53,9 +53,6 @@ class LINC_detector():
                 toc = time.time()
                 time_taken = toc - tic
                 print(f'Done in {toc - tic:.2f} seconds!')
-                
-                print(outputs)
-
                 print(f'Saving results to file... ', end='', flush=True)
                 image_dict = {'boxes': []}
                 for i, score in enumerate(outputs[0]['scores']):
@@ -74,7 +71,7 @@ class LINC_detector():
                 image_dict['depth'] = img_mode
                 image_dict['name'] = image_name
                 print('Done.')
-        print(json.dumps(image_dict))
+        #print(json.dumps(image_dict))
         return image_dict, time_taken 
 
 

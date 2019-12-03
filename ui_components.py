@@ -1,29 +1,32 @@
+import time
+import os
+import sys
+import subprocess
 from tkinter import * 
 from tkinter import filedialog
 from PIL import Image, ImageTk
-import subprocess
-import time
-import os
-from predict_AI import LINC_detector
-from ui_vocFileUtil import create_voc
 from ui_fileManager import transfer_files, get_image_files
+from runAnnotation import LINCWorker
 
 
-# Static components
-class staticFrame(Frame):
+# right frame components
+class rightFrame(Frame):
     def __init__(self, root):
-        Frame.__init__(self, root, width=310, height=500)
+        Frame.__init__(self, root, width=310, height=550)
         self.configure(bg='white')
+        self.root = root
         # Make components
         self.img_label = self.load_logo()
         self.info = self.info_label()        
+        self.exit_button()
         self.place_components()
-
+        
 
     def place_components(self):
         # Place widgets
-        self.img_label.grid(sticky='E', column=0, rowspan=1, row=0)
+        self.img_label.grid(sticky='E', column=0, rowspan=1, row=1)
         self.info.grid(sticky='W', column=0, rowspan=1, row=2)
+        self.exit_b.grid(sticky='E', column=0, row=0)
 
 
     def load_logo(self):
@@ -55,6 +58,17 @@ class staticFrame(Frame):
         "lower=less confident results are returned.",'tag-left') 
         info.configure(state=DISABLED, bg='white')
         return info
+
+
+    def exit_button(self):
+        self.exit_b = Button(self, text="Cancel/Exit", 
+                        command=self.exit_linc, 
+                        width=30, activebackground='red',
+                        bg='orange', fg='white')
+
+
+    def exit_linc(self):
+        self.root.kill_prog = True
 
 
 class messageFrame(Frame):
@@ -98,7 +112,7 @@ class messageFrame(Frame):
 
 class buttonFrame(Frame):
     # Implements main buttons and flow
-    def __init__(self, root, model):
+    def __init__(self, root):
         Frame.__init__(self, root, width=500, height=250)
         self.configure(bg='white')
         # Vars
@@ -108,7 +122,6 @@ class buttonFrame(Frame):
         self.root = root                # Root window container
         self.green = '#1fc401'
         self.the_date = None
-        self.LINC = model
         self.threshold = .8
         # Make buttons
         self.buttons, self.button_labels = self.make_buttons()
@@ -156,8 +169,7 @@ class buttonFrame(Frame):
 
 
     def make_buttons(self):
-        # Make buttons
-        # Print label to window
+        # Make buttons print label to window
         the_width = 20
         the_width_l = 30
         color = "#054bfc"
@@ -176,7 +188,7 @@ class buttonFrame(Frame):
                         width=the_width, activebackground=color_a,
                         bg=color, fg=color_f)
             
-        # Clean file names
+        # Transfer files, clean file names
         button_labels[1] = Label (self, text= "Copy images to new directory", 
                         font=("Arial Bold", 10), bg=color_l, width=the_width_l)
         button[1] = Button(self, text="Transfer Files", 
@@ -210,6 +222,7 @@ class buttonFrame(Frame):
 
     # Callbacks 
     def get_date(self):
+        # Make_date callback
         the_date = self.date_box.get() 
         good_date = re.search( r'^[0-1][0-9]_[0-3][0-9]_[1-2][0-9]{3}$', 
                             the_date, re.I)
@@ -224,9 +237,8 @@ class buttonFrame(Frame):
 
 
     def find_image_dir(self):
-        # Directory selector
+        # Select directory callback
         image_directory = filedialog.askdirectory()
-        print(image_directory)
         path,file_name = os.path.split(image_directory) 
         # Print label to window
         self.root.messages[2].configure(text=image_directory)
@@ -237,7 +249,7 @@ class buttonFrame(Frame):
         
 
     def transfer(self):
-        # Clean and copy files
+        # Transfer files callback
         if self.the_date == None:
             self.root.messages[0].config(text='Please type date in form mm_dd_yyyy',
                                     fg='red')
@@ -253,37 +265,37 @@ class buttonFrame(Frame):
             self.button_labels[1].configure(bg="#00cc00")
 
 
-    def run_status_bar(self, total, current, time_taken):
-            current +=1 
+    def run_status_bar(self, total, percent, time_taken):
+            # Updates and displays statusbar
             if time_taken != None:
-                com_time = (total-current)*time_taken
+                com_time =(total*time_taken)-(total*time_taken)*percent
                 self.root.messages[0].configure(text=f'Estimated time {com_time:.2f}(sec)')
-            print(f"Current{current}, Total:{total}")
-            diff = current/total 
-            self.status_bar.update()    # Forces update of widget
-            if diff > .17:
+            #print(f"Percent: {percent}, Total:{total}")
+            if percent > .17:
                 self.status_bar.create_rectangle(0, 25, 50, 75, fill="red")
-            if diff > .34:
+            if percent > .34:
                 self.status_bar.create_rectangle(50, 25, 100, 75, fill="orange")
-            if diff > .54:
+            if percent > .49:
                 self.status_bar.create_rectangle(100, 25, 150, 75, fill="yellow")
-            if diff > .71:
+            if percent > .69:
                 self.status_bar.create_rectangle(150, 25, 200, 75, fill="purple")
-            if diff > .81:
+            if percent > .81:
                 self.status_bar.create_rectangle(200, 25, 300, 75, fill="blue")
-            if diff > .90:
+            if percent > .99:
                 self.status_bar.create_rectangle(300, 25, 450, 75, fill="green")
                 self.root.messages[0].config(text='DONE!', fg=self.green)
+            self.status_bar.update()    # Forces update of widget
+   
 
-    
     def get_thresh_input(self):
+        # Creates pop up to get user input for threshold
         self.top_box = Toplevel(width=200)
-        self.top_box.title("OPTIONAL - set annotation threshhold")
-        m = Message(self.top_box,text = "Set threshold 1-9, or use default(8),"+
+        self.top_box.title("Set annotation threshhold")
+        spin = Spinbox(self.top_box, from_=0, to=10, textvariable = 8)
+        m = Message(self.top_box,text = "Set threshold 1-9, default is 8,"+
                                 " then press Enter to run auto-annotator")
         b = Button(self.top_box, text="Enter",command=lambda:    # Run annotations
                     self.set_spin(spin), width=10)
-        spin = Spinbox(self.top_box, from_=0, to=10, textvariable = 8)
         m.pack()
         spin.pack()         # Pack in widgets
         b.pack()
@@ -293,34 +305,59 @@ class buttonFrame(Frame):
         # Call back for pop-up
         self.threshold = (float(spin.get())*.1)
         self.top_box.destroy()
-        self.check_annotation()     # Run Annotation
+        self.make_annotations()     # Run Annotation
 
 
-    def check_annotation(self):
+    def make_annotations(self):
+        # Call from spinner runs the annotation process
         time_taken = None
-        self.root.messages[0].configure(text=f'Threshold set:{self.threshold:.2f}'
-                                        + ', starting annotation..',fg=self.green)
         if self.image_directory != None:
             new_path_abs = os.path.join(self.image_directory, self.new_path)
+            self.new_path_abs = new_path_abs
             the_images, the_names = get_image_files(new_path_abs)
             total = len(the_images)
-            print(f"threshold: {self.threshold}") 
-            for i, (image_path, name) in enumerate(zip(the_images,the_names)):
-                print(f"IMAGE:{image_path}\nNAME: {name}\n")
-                self.run_status_bar(total, i, time_taken)
-                results, time_taken = self.LINC.detect([image_path], [name],
-                                                            self.threshold)
-                # Make marking annotation
-                create_voc(results, image_path)
+            the_thresh_proc = [self.threshold for i in range(total)]
+            # Display thresh
+            self.root.messages[0].configure(text=f'Threshold set:{self.threshold:.2f}'
+                                        + ', starting annotation..',fg=self.green)
+ 
+            # Create annotations on files, creates thread and calls model
+            LW = LINCWorker()           # Load model
+           
+            # Run Thread to check images 
+            self.root.are_threads = LW.run_annotation_thread(the_images, the_names, 
+                                                            the_thresh_proc)
+            then = time.time()      # For stats
+            while True:
+                now = (time.time() - then)  
+                # Check program kill requests 
+                if LW.kill.is_set() or self.root.kill_prog:
+                    self.root.messages[0].configure(text=f'Shutting down...'
+                            +'Waiting for last image.',fg='red')
+                    self.root.update()
+                    LW.kill_all()
+                    while LW.thread.isAlive == True:
+                        pass # Block for exit    
+                    print(f"Make_annotation:Thread Alive? {LW.thread.isAlive()}")
+                    return
+                else:
+                    # Display percent done 
+                    self.run_status_bar(total, LW.status, LW.run_time)
+                    self.root.update()
+                    if LW.ready.isSet():
+                        print(f"toc:{now}")
+                        break
+                
             # Color status bar
             self.button_labels[2].configure(bg="#00cc00")
             self.root.messages[3].configure(text= "Please verify annotations/add marking tags")
         
+        # Bad image directory
         else:
             self.root.messages[0].config(text='Please transfer files first',
             fg='red')
-        self.new_path_abs = new_path_abs
-
+            return
+    
 
     def run_image_lb(self):
         # Launch image label
