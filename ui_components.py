@@ -2,12 +2,11 @@ import time
 import os
 import sys
 import subprocess
-from tkinter import * 
+from tkinter import *
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from ui_fileManager import transfer_files, get_image_files
 from runAnnotation import LINCWorker
-
 
 # right frame components
 class rightFrame(Frame):
@@ -17,10 +16,10 @@ class rightFrame(Frame):
         self.root = root
         # Make components
         self.img_label = self.load_logo()
-        self.info = self.info_label()        
+        self.info = self.info_label()
         self.exit_button()
         self.place_components()
-        
+
 
     def place_components(self):
         # Place widgets
@@ -42,27 +41,27 @@ class rightFrame(Frame):
     def info_label(self):
         # Static info directions
         info = Text(self, width=37,
-                height=60, relief=FLAT, 
-                highlightthickness=0, wrap='word') 
+                height=60, relief=FLAT,
+                highlightthickness=0, wrap='word')
         info.tag_configure('tag-left',justify='left')
         info.insert(END,
-        "1. Enter the date of the sighting, "+ 
-        "in the format dd_mm_yyyy using "+ 
-        "underscores.\n\n"+ 
-        "2. Select the directory with lion images"+ 
+        "1. Enter the date of the sighting, "+
+        "in the format dd_mm_yyyy using "+
+        "underscores.\n\n"+
+        "2. Select the directory with lion images"+
         "and then click transfer to copy files with"+
         "clean file names to new sub director.\n\n"+
         "3. Use the annotation button"+
-        "to start the auto-annotationer."+ 
+        "to start the auto-annotationer."+
         "Threshold level is the confidence threshold, " +
-        "lower=less confident results are returned.",'tag-left') 
+        "lower=less confident results are returned.",'tag-left')
         info.configure(state=DISABLED, bg='white')
         return info
 
 
     def exit_button(self):
-        self.exit_b = Button(self, text="Cancel/Exit", 
-                        command=self.exit_linc, 
+        self.exit_b = Button(self, text="Cancel/Exit",
+                        command=self.exit_linc,
                         width=30, activebackground='red',
                         bg='orange', fg='white')
 
@@ -85,10 +84,10 @@ class messageFrame(Frame):
     def place_components(self):
         the_row = 0
         # [0] ir root message
-        self.root.messages[0].grid(sticky='W', column=0, 
+        self.root.messages[0].grid(sticky='W', column=0,
                                 row=the_row+0, columnspan=1)
         for i, mes in enumerate(self.root.messages):
-            mes.grid(sticky='W', column=0,row=(the_row+i+1), 
+            mes.grid(sticky='W', column=0,row=(the_row+i+1),
                     columnspan=1)
 
 
@@ -96,19 +95,19 @@ class messageFrame(Frame):
         the_width = 50
         the_width_2 = 60
         messages = [Label(self, bg="black",
-                                relief=FLAT,font=("Courier","12", "bold"), 
-                                highlightthickness=0, anchor="w", 
+                                relief=FLAT,font=("Courier","12", "bold"),
+                                highlightthickness=0, anchor="w",
                                 width=the_width)]
         # Default message
-        messages[0].configure(text='Welcome....',fg=self.green) 
+        messages[0].configure(text='Welcome....',fg=self.green)
         # Message steps
         for i in range(1, 4):
-            messages.append(Label(self, bg="white", relief=FLAT, 
+            messages.append(Label(self, bg="white", relief=FLAT,
                                 font=("Courier",10),
-                                anchor="w", highlightthickness=0, 
+                                anchor="w", highlightthickness=0,
                                 width=the_width_2))
         return messages
-    
+
 
 class buttonFrame(Frame):
     # Implements main buttons and flow
@@ -129,7 +128,7 @@ class buttonFrame(Frame):
         self.date_box, self.date_button = self.make_date()
         # Place components
         self.place_components()
-    
+
 
     def place_components(self):
         # Place in window
@@ -139,7 +138,7 @@ class buttonFrame(Frame):
         self.date_button.grid(sticky='W', column=(0+off_col), row=current_row)
         self.date_box.grid(sticky='W', column=1, row=current_row, padx=100)
         current_row += 1 # Inc row
-        
+
         # Main buttons
         for i, (button, b_label) in enumerate(zip(self.buttons, self.button_labels)):
             button.grid(sticky='W', column=(0+off_col), row=current_row)
@@ -147,7 +146,7 @@ class buttonFrame(Frame):
             current_row += 1    # Inc row
 
         # Place status bar
-        self.status_bar.grid(sticky='W', column=0, row=current_row, 
+        self.status_bar.grid(sticky='W', column=0, row=current_row,
                             columnspan=2, pady=0, padx=0)
 
 
@@ -157,11 +156,11 @@ class buttonFrame(Frame):
         color_f = 'white'
         the_width = 20
         # Make date button
-        date_b = Button(self, text="Submit Date", command=self.get_date, 
+        date_b = Button(self, text="Submit Date", command=self.get_date,
                         width=the_width, activebackground=color_a,
                         bg=color, fg=color_f)
 
-        date_box = Entry(self, width=11)
+        date_box = Entry(self, width=12)
         date_box.insert(END,"mm_dd_yyyy")
 
         self.date_box = date_box
@@ -178,53 +177,53 @@ class buttonFrame(Frame):
         color_f = 'white'       # Foreground color
         button = list(range(4))
         button_labels = list(range(4))
-        
-        
+
+
         # Select Directory
-        button_labels[0] = Label (self, text="Choose Lion Images Directory", 
+        button_labels[0] = Label (self, text="Choose Lion Images Directory",
                         font=("Arial Bold", 10), bg=color_l, width=the_width_l)
-        button[0] = Button(self, text="Select Dir", 
-                        command=self.find_image_dir, 
+        button[0] = Button(self, text="Select Dir",
+                        command=self.find_image_dir,
                         width=the_width, activebackground=color_a,
                         bg=color, fg=color_f)
-            
+
         # Transfer files, clean file names
-        button_labels[1] = Label (self, text= "Copy images to new directory", 
+        button_labels[1] = Label (self, text= "Copy images to new directory",
                         font=("Arial Bold", 10), bg=color_l, width=the_width_l)
-        button[1] = Button(self, text="Transfer Files", 
-                        command=self.transfer, 
+        button[1] = Button(self, text="Transfer Files",
+                        command=self.transfer,
                         width=the_width, activebackground=color_a,
                         bg=color, fg=color_f)
-        
+
         # Run annotation
-        button_labels[2] = Label (self, text= "Run auto-annotations", 
+        button_labels[2] = Label (self, text= "Run auto-annotations",
                         font=("Arial Bold", 10), bg=color_l, width=the_width_l)
-        button[2] = Button(self, text="Annotate", 
+        button[2] = Button(self, text="Annotate",
                         command=self.get_thresh_input,# Ask user for threshold
                         width=the_width, activebackground=color_a,
                         bg=color, fg=color_f)
 
         # Launch Image Label
-        button_labels[3] = Label (self, text= "Check annotations", 
+        button_labels[3] = Label (self, text= "Check annotations",
                         font=("Arial Bold", 10), bg=color_l, width=the_width_l)
-        button[3] = Button(self, text="Verify", 
-                        command=self.run_image_lb, 
+        button[3] = Button(self, text="Verify",
+                        command=self.run_image_lb,
                         width=the_width, activebackground=color_a,
                         bg=color, fg=color_f)
         return button, button_labels
- 
+
 
     def make_status_bar(self):
         status = Canvas(self, width=500, height=80,
                 bg="white",relief=FLAT, highlightthickness=0)
         return status
-  
 
-    # Callbacks 
+
+    # Callbacks
     def get_date(self):
         # Make_date callback
-        the_date = self.date_box.get() 
-        good_date = re.search( r'^[0-1][0-9]_[0-3][0-9]_[1-2][0-9]{3}$', 
+        the_date = self.date_box.get()
+        good_date = re.search( r'^[0-1][0-9]_[0-3][0-9]_[1-2][0-9]{3}$',
                             the_date, re.I)
         if good_date:
             self.root.messages[0].config(text=f'You entered {the_date}',
@@ -238,15 +237,15 @@ class buttonFrame(Frame):
 
     def find_image_dir(self):
         # Select directory callback
-        image_directory = filedialog.askdirectory()
-        path,file_name = os.path.split(image_directory) 
+        image_directory = os.path.abspath(filedialog.askdirectory())
+        path,file_name = os.path.split(image_directory)
         # Print label to window
         self.root.messages[2].configure(text=image_directory)
         self.button_labels[0].configure(bg="#00cc00")
         self.root.messages[0].config(text=f"You selected: {file_name}",
                                 fg = self.green)
-        self.image_directory = image_directory  # Pass to root 
-        
+        self.image_directory = image_directory  # Pass to root
+
 
     def transfer(self):
         # Transfer files callback
@@ -285,11 +284,11 @@ class buttonFrame(Frame):
                 self.status_bar.create_rectangle(300, 25, 450, 75, fill="green")
                 self.root.messages[0].config(text='DONE!', fg=self.green)
             self.status_bar.update()    # Forces update of widget
-   
+
 
     def get_thresh_input(self):
         # Creates pop up to get user input for threshold
-        self.top_box = Toplevel(width=200)
+        self.top_box = Toplevel(width=450, height=450)
         self.top_box.title("Set annotation threshhold")
         spin = Spinbox(self.top_box, from_=0, to=10, textvariable = 8)
         m = Message(self.top_box,text = "Set threshold 1-9, default is 8,"+
@@ -301,7 +300,7 @@ class buttonFrame(Frame):
         b.pack()
 
 
-    def set_spin(self,spin):        
+    def set_spin(self,spin):
         # Call back for pop-up
         self.threshold = (float(spin.get())*.1)
         self.top_box.destroy()
@@ -313,6 +312,7 @@ class buttonFrame(Frame):
         time_taken = None
         if self.image_directory != None:
             new_path_abs = os.path.join(self.image_directory, self.new_path)
+            print(f"just made new path{new_path_abs}")
             self.new_path_abs = new_path_abs
             the_images, the_names = get_image_files(new_path_abs)
             total = len(the_images)
@@ -320,53 +320,69 @@ class buttonFrame(Frame):
             # Display thresh
             self.root.messages[0].configure(text=f'Threshold set:{self.threshold:.2f}'
                                         + ', starting annotation..',fg=self.green)
- 
+
             # Create annotations on files, creates thread and calls model
             LW = LINCWorker()           # Load model
-           
-            # Run Thread to check images 
-            self.root.are_threads = LW.run_annotation_thread(the_images, the_names, 
+
+            # Run Thread to check images
+            self.root.are_threads = LW.run_annotation_thread(the_images, the_names,
                                                             the_thresh_proc)
             then = time.time()      # For stats
             while True:
-                now = (time.time() - then)  
-                # Check program kill requests 
+                now = (time.time() - then)
+                # Check program kill requests
                 if LW.kill.is_set() or self.root.kill_prog:
                     self.root.messages[0].configure(text=f'Shutting down...'
                             +'Waiting for last image.',fg='red')
                     self.root.update()
                     LW.kill_all()
                     while LW.thread.isAlive == True:
-                        pass # Block for exit    
+                        pass # Block for exit
                     print(f"Make_annotation:Thread Alive? {LW.thread.isAlive()}")
                     return
                 else:
-                    # Display percent done 
+                    # Display percent done
                     self.run_status_bar(total, LW.status, LW.run_time)
                     self.root.update()
                     if LW.ready.isSet():
                         print(f"toc:{now}")
+                        self.run_status_bar(total, LW.status, LW.run_time)
                         break
-                
+
             # Color status bar
             self.button_labels[2].configure(bg="#00cc00")
-            self.root.messages[3].configure(text= "Please verify annotations/add marking tags")
-        
+            self.root.messages[0].configure(text= "Please verify annotations/add marking tags")
+
         # Bad image directory
         else:
             self.root.messages[0].config(text='Please transfer files first',
             fg='red')
             return
-    
+
 
     def run_image_lb(self):
+        #sys.exit(mainlb())
         # Launch image label
-        the_path = os.path.join('labelImg', 'labelImg.py')
-        print(f'IMAGE PATH:{self.new_path_abs}')
-        if (self.new_path_abs != None) and os.path.isdir(self.new_path_abs):
-            subprocess.call(["python3", the_path, self.new_path_abs])
-            self.button_labels[3].configure(bg="#00cc00")
-        else:
-            self.root.messages[0].configure(text="Bad path: Select Directory again", 
-                                            fg='red')
- 
+        the_cmd = os.path.join('labelImg-master', 'labelImg.py')
+        the_cmd = os.path.abspath(the_cmd)
+        try:
+            dir_path = os.path.abspath(self.new_path_abs)
+        except Exception as e:
+            self.root.messages[0].configure(
+                    text="Bad path: Choose directory in imagelabel",
+                    fg='red')
+            dir_path = ' '
+    
+        # Start process
+        full_cmd = [sys.executable, the_cmd, dir_path]
+        try:
+            subprocess.Popen(full_cmd).wait()
+        except subprocess.CalledProcessError as e:
+            sys.stderr.write(
+            "common::run_command() : [ERROR]: output = %s, error code = %s\n" 
+            % (e.output, e.returncode))
+        self.button_labels[3].configure(bg="#00cc00")
+
+
+if __name__ == '__main__':
+    pass

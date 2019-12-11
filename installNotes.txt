@@ -1,0 +1,22 @@
+Install local version of python3
+
+for make file utils
+First install packages
+ sudo apt-get install libffi-dev zlib1g-dev
+
+Create new local version:
+
+[server]$ cd ~
+[server]$ mkdir tmp
+[server]$ cd tmp
+[server]$ wget https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz
+[server]$ tar zxvf Python-3.7.3.tgz 
+[server]$ cd Python-3.7.3 
+[server]$ ./configure --prefix=$HOME/opt/python-3.7.3
+[server]$ make
+[server]$ make install
+
+In bashrc file
+	export PATH=$HOME/opt/python-3.7.3/bin:$PATH
+
+

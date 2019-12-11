@@ -1,12 +1,9 @@
-#!/usr/bin/python3
-
-from tkinter import * 
+from tkinter import *
 import os
-from predict_AI import LINC_detector
 from ui_components import buttonFrame, messageFrame, rightFrame
 
 class WindowRunner(Tk):
-    
+
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         self.kill_prog = False              # Kill switch
@@ -19,11 +16,11 @@ class WindowRunner(Tk):
         RF = rightFrame(self)
         RF.grid(sticky="W", column=1, row=0, rowspan = 2)
         RF.grid_propagate(0)
-        
+
         MF = messageFrame(self)
         MF.grid(sticky="W", column=0, row=0)
         MF.grid_propagate(0)
-        
+
         BF = buttonFrame(self)
         BF.grid(sticky="W", column=0, row=1)
         BF.grid_propagate(0)
@@ -31,10 +28,10 @@ class WindowRunner(Tk):
         self.graceful_exit() # Start checking exit
 
     def graceful_exit(self):
-        if self.kill_prog: 
+        if self.kill_prog:
             if self.are_threads != None:
                 if not self.are_threads.isAlive():
-                    print(f"graceful: Thread Alive?: {self.are_threads.isAlive()}"
+                    print(f"graceful:Thread Alive? {self.are_threads.isAlive()}"
                             +" ...destroying now")
                     self.destroy()
                     return
@@ -50,5 +47,3 @@ if __name__ == "__main__":
     WR = WindowRunner()
     # Make window persistent
     WR.mainloop()
-
-

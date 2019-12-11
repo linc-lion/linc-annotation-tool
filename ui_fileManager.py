@@ -7,8 +7,8 @@ absFilePath = os.path.abspath(__file__)
 fileDir = os.path.dirname(os.path.abspath(__file__))
 #print(fileDir)
 parentDir = os.path.dirname(fileDir)
-#print(parentDir)          
-            
+#print(parentDir)
+
 
 def clean_name(the_string):
     bad_char = r'[^a-z^A-Z^0-9.]'
@@ -54,13 +54,14 @@ def transfer_files(image_dir, the_date, new_dir_name ):
             file_ext = re.search( r'(.*)\.jpg|\.jpeg]\.png', name, re.I)
             in_new_dir = re.search( new_dir_name, root, re.I)
             if file_ext and not in_new_dir:
-                s_path = os.path.abspath(root+'/'+name)
+                base_path = os.path.join(root, name)
+                s_path = os.path.abspath(base_path) # doublecheck
                 # Clean name
                 name = clean_name(name)
                 # Format name
                 name = "{}_{}__{}".format(file_index,the_date,name)
                 file_index += 1
-                
+
                 # Make destination
                 d_path = make_new_dir_path(s_path, new_dir_name)
                 new_file_path = os.path.join(d_path, name)
@@ -77,5 +78,3 @@ def transfer_files(image_dir, the_date, new_dir_name ):
                         print(e)
             else:
                 print("bad file format.. skipping:", name)
-            
-

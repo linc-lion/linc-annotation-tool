@@ -19,7 +19,7 @@ def run_anno_proc(data):
     model_path = os.path.join(os.getcwd(), 'DeployModels', 'body_parts_1.pth')
     # Prime model for use
     LINC = LINC_detector(model_path)
-   
+
     # Run images
     data = zip(data[0], data[1], data[2])
     for (image_path, name, threshold) in data:
@@ -42,7 +42,7 @@ def chunk_it(data, sections):
     # Split list into even as possible sub lists
     split_lists = []
     size, leftovers = divmod(len(data), sections)
-     
+
     for i in range(sections):
         if leftovers != 0:
             end = size + 1
@@ -59,20 +59,21 @@ class LINCWorker():
     def __init__(self, *args, **kwargs):
         # !args takes lists of same size to run jobs on
         self.status = 0 # Jobs completion percentage
-        self.run_time = 0 
+        self.run_time = 0
         self.data = []
         self.thread = None
         self.the_pool = None
         # Get aval cpus
-        self.num_proc = multiprocessing.cpu_count() 
-        print(f'Processor count: {self.num_proc}') 
-                
+        self.num_proc = multiprocessing.cpu_count()
+        print(f'Processor count: {self.num_proc}')
+
         # Create Thread Event to tell when thread completes
         self.ready = Event()
         self.kill = Event()
 
 
     def __del__(self):
+        print("Clean Up Thread")
         self.kill_all()
 
 
@@ -109,10 +110,10 @@ class LINCWorker():
 
 
     def run_in_process(self, func, args):
-        # Start and run the process pool. 
+        # Start and run the process pool.
         # Divide data into list based on cpu #
-        self.the_pool = Pool(processes=self.num_proc)     
-        
+        self.the_pool = Pool(processes=self.num_proc)
+
         images = chunk_it(args[0], self.num_proc)       # Div data evenly between procs
         names = chunk_it(args[1], self.num_proc)
         threshold = chunk_it(args[2], self.num_proc)
@@ -121,7 +122,7 @@ class LINCWorker():
 
         # imap_unordered returns as ready, iterable list.
         try:
-            for i, (out_data, time) in enumerate(self.the_pool.imap_unordered(func, data)):    
+            for i, (out_data, time) in enumerate(self.the_pool.imap_unordered(func, data)):
                 self.run_time = time
                 self.status = (i+1)/total
                 #print(f"Appending{out_data}")
@@ -146,11 +147,11 @@ class LINCWorker():
     def run_anno_thread(self, *args):
         # Code to run annotations in thread
         try:
-            # Prime model 
+            # Prime model
             model_path = os.path.join(os.getcwd(), 'DeployModels', 'body_parts_1.pth')
             LINC = LINC_detector(model_path)
             image_paths, the_names, threshold = args
-            
+
             total = len(args[0])                # Get len of data for status bar
             for i, (image_path, name) in enumerate(zip(image_paths, the_names)):
                 if self.kill.is_set():
@@ -164,47 +165,47 @@ class LINCWorker():
                 # Make marking annotation
                 create_voc(out_data, image_path)
 
-            self.status = 1.00                  # Done
+            self.status = 1.00                  # Done 100%
             self.ready.set() # Used to signal to the thread Event the thread is done
         except Exception as e:
-            print(e)
+            print("Got Ex")
             self.kill.set()     # Send out flag to main context
             return
-        
+
 
     def run_annotation_proc(self, *args, num_proc='one'):
         # Run annotation in process wrapped in thread
-        if num_proc == 'full': 
+        if num_proc == 'full':
             self.num_proc = multiprocessing.cpu_count()
         elif num_proc == 'half':
             self.num_proc = int(multiprocessing.cpu_count()/2)
         elif num_proc == 'one':
             self.num_proc = 1
-        print(f'Running on {self.num_proc} cpus') 
+        print(f'Running on {self.num_proc} cpus')
         self.thread = Thread(target=self.run_in_process, args=(func, args))
         self.thread.start()
 
 
 if __name__ == '__main__':
-    
-   
-    # Make data can be any list of data, if not two change zip above
-    the_images = [
-        'AnnotationTool/InImages/LINCImages/0_03_30_1980__ANP_F2_2009_Oct_22_BR.JPG', 
-        'AnnotationTool/InImages/LINCImages/2_03_30_1980__ANP_F2_2009_Aug_15_BL.JPG', 
-        'AnnotationTool/InImages/LINCImages/3_03_30_1980__ANP_F2_2009_Aug_15_P.JPG', 
-        'AnnotationTool/InImages/LINCImages/4_03_30_1980__ANP_F2_2009_Aug_14_L.JPG', 
-        'AnnotationTool/InImages/LINCImages/1_03_30_1980__0_34___test34_.JPG']
 
-    the_names = [
-        '0_03_30_1980__ANP_F2_2009_Oct_22_BR.JPG', 
-        '1_03_30_1980__0_34___test34_.JPG',
-        '2_03_30_1980__ANP_F2_2009_Aug_15_BL.JPG', 
-        '3_03_30_1980__ANP_F2_2009_Aug_15_P.JPG', 
-        '4_03_30_1980__ANP_F2_2009_Aug_14_L.JPG']
+
+    # Make data can be any list of data, if not two change zip above
+    the_images = [r"C:\Users\stullwindows\Desktop\LincAnnotation\linc-annotation-tool-master\TestImages\lion_fam.jpg"]
+        #'AnnotationTool/InImages/LINCImages/0_03_30_1980__ANP_F2_2009_Oct_22_BR.JPG',
+        #'AnnotationTool/InImages/LINCImages/2_03_30_1980__ANP_F2_2009_Aug_15_BL.JPG',
+        #'AnnotationTool/InImages/LINCImages/3_03_30_1980__ANP_F2_2009_Aug_15_P.JPG',
+        #'AnnotationTool/InImages/LINCImages/4_03_30_1980__ANP_F2_2009_Aug_14_L.JPG',
+        #'AnnotationTool/InImages/LINCImages/1_03_30_1980__0_34___test34_.JPG']
+
+    the_names = ["lion_fam.jpg"]
+        #'0_03_30_1980__ANP_F2_2009_Oct_22_BR.JPG',
+        #'1_03_30_1980__0_34___test34_.JPG',
+        #'2_03_30_1980__ANP_F2_2009_Aug_15_BL.JPG',
+        #'3_03_30_1980__ANP_F2_2009_Aug_15_P.JPG',
+        #'4_03_30_1980__ANP_F2_2009_Aug_14_L.JPG']
     the_images = []
     the_names = []
-    for the_dir, sub_dir, files in os.walk('AnnotationTool/InImages/LINCImages/'):
+    for the_dir, sub_dir, files in os.walk('TestImages'):
         for the_file in files:
             the_images.append(os.path.join(the_dir, the_file))
             the_names.append(the_file)
@@ -212,7 +213,7 @@ if __name__ == '__main__':
     the_thresh_proc = [.8 for i in range(len(the_names))]
     the_thresh_thread = 0.8
     args = (the_images, the_names, the_thresh_proc)
-    
+
     # Start run
     LW = LINCWorker()
 
